@@ -1,0 +1,10 @@
+# Project Python dependencies (minimal list inferred from code)
+fastapi
+uvicorn
+pandas
+requests
+ccxt
+vaderSentiment
+
+# Optional but commonly useful
+python-dotenv
