@@ -5,6 +5,5 @@ pandas
 requests
 ccxt
 vaderSentiment
-
-# Optional but commonly useful
 python-dotenv
+google-generativeai

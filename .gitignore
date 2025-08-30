@@ -34,6 +34,7 @@ nose2-junit-report.xml
 venv/
 ENV/
 env/
+.env
 .env/
 .venv/
 
