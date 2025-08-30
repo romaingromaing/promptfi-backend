@@ -75,13 +75,13 @@ def naive_parse(text: str) -> Plan:
     - omit that key entirely from the object, OR
     - set it to a reasonable numeric default (see rule 2).
     2. Reasonable defaults if needed:
-    - rebalance.band_pp = 0.0
-    - rebalance.turnover_max = 0.0
-    - rebalance.hard_cap = 1.0
-    - risk.max_weight = 1.0
-    - risk.slippage_max_bps = 0
-    - risk.order_max_usd = 0.0
-    - risk.cooldown_hours = 0
+    - rebalance.band_pp = 5.0
+    - rebalance.turnover_max = 0.15
+    - rebalance.hard_cap = 0.50
+    - risk.max_weight = 0.40
+    - risk.slippage_max_bps = 80
+    - risk.order_max_usd = 2000
+    - risk.cooldown_hours = 6
     3. For sentiment terms:
     - "SENTIMENT >= GOOD" -> "SENTIMENT >= {GOOD_THRESH}"
     - "SENTIMENT <= BAD"  -> "SENTIMENT <= {BAD_THRESH}"
