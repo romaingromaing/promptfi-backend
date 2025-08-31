@@ -136,6 +136,15 @@ def plan(req: PlanRequest):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An internal error occurred.")
+    
+
+def plan_debug(text):
+        generated_plan = naive_parse(text)
+        analysis = analyze_plan(generated_plan.model_dump())
+        print(f"Plan Analysis: {analysis}") 
+        return generated_plan.model_dump() 
+
+
 
 @app.get("/get_ohclv", response_model=None)
 def get_ohlcv(symbol: str, days: int):
