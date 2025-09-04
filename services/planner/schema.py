@@ -131,8 +131,11 @@ class Plan(BaseModel):
     weighting: Weighting = Field(default_factory=Weighting)
     rebalance: Rebalance = Field(default_factory=Rebalance)
     risk: Risk = Field(default_factory=Risk)
-    execution: Optional[Execution] = Field(default_factory=Execution)
-    sentiment_cfg: Optional[SentimentCfg] = Field(default_factory=SentimentCfg)
+    # execution: Optional[Execution] = Field(default_factory=Execution)
+    # sentiment_cfg: Optional[SentimentCfg] = Field(default_factory=SentimentCfg)
+    execution: Execution = Field(default_factory=Execution)
+    sentiment_cfg: SentimentCfg = Field(default_factory=SentimentCfg)
+
 
     @field_validator("universe_list")
     @classmethod

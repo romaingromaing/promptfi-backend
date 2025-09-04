@@ -60,7 +60,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from pprint import pprint
-from services.planner.plan_analyzer import build_plan_json_from_text, analyze_features
+from services.planner.plan_analyzer import build_plan_json_from_text, analyze_features, build_plan_with_gemini
 from services.data.data_layer import load_universe
 from services.data.sentiment import fetch_headlines, rolling_sentiment
 from engine.engine import Plan
@@ -105,7 +105,7 @@ def to_plan_obj(pj: dict) -> Plan:
 def get_plan(req: PlanRequest):
     """Convert user text into Plan JSON using existing helper (no Gemini)."""
     try:
-        plan_json = build_plan_json_from_text(req.text)
+        plan_json = build_plan_with_gemini(req.text)
         analysis = analyze_features(plan_json)
         return {"plan": plan_json, "analysis": analysis}
     except Exception as e:
@@ -154,7 +154,7 @@ def backtest(req: BacktestReq):
 if __name__ == "__main__":
     # keep previous script behavior when run directly for convenience
     user_text = "I'm bullish on BTC and ETH. You choose the best technicals with sentiment good."
-    plan_json = build_plan_json_from_text(user_text)
+    plan_json = build_plan_with_gemini(user_text)
     print("\n--- Plan JSON ---")
     pprint(plan_json)
 

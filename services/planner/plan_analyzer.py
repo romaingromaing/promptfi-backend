@@ -43,6 +43,13 @@
 import re
 from engine.engine import Plan
 from typing import List
+from dotenv import load_dotenv
+import os
+import google.generativeai as genai
+import json
+load_dotenv()
+
+api_key= os.getenv("GOOGLE_API_KEY")
 
 DEFAULT_JSON = {
   "name": "Auto_Expert",
@@ -67,6 +74,7 @@ DEFAULT_JSON = {
   "execution":{"chunk_usd":2000,"use_yield":False},
   "sentiment_cfg":{"good_threshold":0.30,"bad_threshold":-0.30,"shock_delta_24h":0.50}
 }
+
 
 def build_plan_json_from_text(user_text: str) -> dict:
     t = user_text.lower()
@@ -95,6 +103,71 @@ def build_plan_json_from_text(user_text: str) -> dict:
         rules.append("SENTIMENT>=GOOD")
     plan["custom_rules"] = rules
     return plan
+
+def build_plan_with_gemini(user_text: str) -> dict:
+    """
+    Use Gemini to generate a structured Plan JSON.
+    Falls back to regex parser if Gemini fails.
+    Ensures return format matches DEFAULT_JSON.
+    """
+    try:
+        genai.configure(api_key=api_key)
+    except Exception as e:
+        print(f"Gemini config error: {e}")
+        return build_plan_json_from_text(user_text)
+
+    # Instead of Plan.model_json_schema(), just show Gemini the expected keys
+    prompt_parts = [
+        "You are an expert crypto trading strategist. "
+        "The user will provide a natural language description of a strategy. "
+        "Your job is to fill out a Plan JSON object that strictly conforms to the schema below. "
+        "If the user does not mention some fields, auto-populate them with robust defaults "
+        "from technical analysis and risk management. "
+        "Never leave required fields as null or None. "
+        "\n\nJSON Schema Example:\n"
+        f"{json.dumps(DEFAULT_JSON, indent=2)}\n\n"
+        f"User's Strategy Description: \"{user_text}\"\n\n"
+        "Output only the JSON object, no explanations."
+    ]
+
+    model = genai.GenerativeModel('gemini-2.0-flash')
+
+    try:
+        response = model.generate_content(
+            prompt_parts,
+            generation_config={"response_mime_type": "application/json"}
+        )
+        raw_json_output = response.text
+        plan_data = json.loads(raw_json_output)
+
+        # Merge Gemini output with DEFAULT_JSON (to ensure consistent keys)
+        merged_plan = {**DEFAULT_JSON, **plan_data}
+        return merged_plan
+
+    except Exception as e:
+        print(f"Gemini generation error: {e}")
+        # Fallback: regex parser
+        return build_plan_json_from_text(user_text)
+
+
+    model = genai.GenerativeModel('gemini-2.0-flash')
+
+    try:
+        response = model.generate_content(
+            prompt_parts,
+            generation_config={"response_mime_type": "application/json"}
+        )
+        raw_json_output = response.text
+        plan_data = json.loads(raw_json_output)
+
+        # Validate against Pydantic Plan schema
+        validated_plan = Plan.model_validate(plan_data)
+        return validated_plan.model_dump()
+
+    except Exception as e:
+        # Fallback: regex parser
+        return build_plan_json_from_text(user_text)
+
 
 def analyze_features(plan_json: dict) -> dict:
     feats: List[str]= []
