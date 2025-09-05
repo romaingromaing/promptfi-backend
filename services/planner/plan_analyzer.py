@@ -123,6 +123,7 @@ def build_plan_with_gemini(user_text: str) -> dict:
         "Your job is to fill out a Plan JSON object that strictly conforms to the schema below. "
         "If the user does not mention some fields, auto-populate them with robust defaults "
         "from technical analysis and risk management. "
+        "Use trade direction bias strictly as given in the user text example 'bearish', 'bullish' otherwise default to 'neutral'."
         "Never leave required fields as null or None. "
         "\n\nJSON Schema Example:\n"
         f"{json.dumps(DEFAULT_JSON, indent=2)}\n\n"
