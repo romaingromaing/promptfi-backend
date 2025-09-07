@@ -116,4 +116,5 @@ def render_png(ohlcv: Dict[str, Any], overlays: ChartJSON, width=900, height=500
     # Corrected the method call here from plt.savefig to fig.savefig
     fig.savefig(buf, format="png", bbox_inches="tight")
     plt.close(fig)
-    return base64.b64encode(buf.getvalue()).decode("ascii")
+    # return base64.b64encode(buf.getvalue()).decode("ascii")
+    return buf.getvalue() 
