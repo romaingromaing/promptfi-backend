@@ -42,7 +42,7 @@
 
 import re
 from engine.engine import Plan
-from typing import List
+from typing import List, Dict, Any
 from dotenv import load_dotenv
 import os
 import google.generativeai as genai
@@ -179,3 +179,74 @@ def analyze_features(plan_json: dict) -> dict:
         "features": ["OHLCV","SMA/EMA","RSI/StochRSI","MACD","ADX/DI","ATR","Bollinger/Keltner","Donchian","OBV/CMF/MFI","VWAP","Sentiment"],
         "lookback_days": 540
     }
+
+
+SCAN_PATTERNS = {
+    "head and shoulders":"head_shoulders",
+    "inverse head and shoulders":"inverse_head_shoulders",
+    "ascending triangle":"ascending_triangle",
+    "descending triangle":"descending_triangle",
+    "symmetrical triangle":"symmetrical_triangle",
+    "bull flag":"bull_flag",
+    "bear flag":"bear_flag",
+    "double top":"double_top",
+    "double bottom":"double_bottom",
+    "rising wedge":"wedge_rising",
+    "falling wedge":"wedge_falling",
+    "doji":"doji","hammer":"hammer",
+    "engulfing":"engulfing_bull"
+}
+
+def parse_scan_query(text: str) -> Dict[str, Any] | None:
+    T = text.lower()
+    tf = "5m"
+    for k in ["1m","3m","5m","15m","30m","1h","2h","4h","6h","12h","1d"]:
+        if re.search(rf"\b{k}\b", T):
+            tf = k; break
+    pats = set()
+    for phrase, key in SCAN_PATTERNS.items():
+        if phrase in T:
+            pats.add(key)
+    if "head & shoulders" in T or "h&s" in T:
+        pats.add("head_shoulders")
+    if "inverse h&s" in T:
+        pats.add("inverse_head_shoulders")
+    if "breakout" in T:
+        pats.update(["ascending_triangle","symmetrical_triangle","bull_flag"])
+    if not pats:
+        pats = set(["ascending_triangle","symmetrical_triangle","bull_flag","double_bottom","wedge_falling",
+                    "head_shoulders","double_top","bear_flag","wedge_rising"])
+    indicators = []
+    m = re.search(r"rsi\s*\(?14\)?\s*([<>]=?)\s*(\d+)", T)
+    if m: indicators.append(f"RSI(14){m.group(1)}{m.group(2)}")
+    if "ema 50 > ema 200" in T or "golden cross" in T:
+        indicators.append("EMA(50)>EMA(200)")
+    if "ema 50 < ema 200" in T or "death cross" in T:
+        indicators.append("EMA(50)<EMA(200)")
+    if "above 30d" in T or "price > 30d ma" in T:
+        indicators.append("CLOSE>SMA(30)")
+    recent_breakout_flag = "breakout" in T or "just broke" in T or "recently broke" in T
+    symbols = []
+    tickers = ["btc","eth","sol","bnb","xrp","ada","avax","ltc","link","matic","doge","shib","pepe","wif","bonk","floki","brett"]
+    for k in tickers:
+        if re.search(rf"\b{k}\b", T): symbols.append(k.upper())
+    if not symbols:
+        symbols = ["BTC","ETH","SOL","DOGE","SHIB","PEPE"]
+    limit = 12
+    m = re.search(r"top\s+(\d+)", T)
+    if m: limit = int(m.group(1))
+    return {
+        "symbols": symbols,
+        "tf": tf,
+        "patterns": list(pats),
+        "filters": {"indicators": indicators, "recent_breakout": recent_breakout_flag, "recency_bars": 5},
+        "sort": "prob",
+        "limit": limit,
+        "bars": 720
+    }
+
+def classify_intent(text: str) -> str:
+    T = text.lower()
+    if any(k in T for k in ["forming","breakout","double top","double bottom","triangle","flag","wedge","head and shoulders","h&s","doji","hammer","engulfing","rsi","ema","find tokens","show tokens"]):
+        return "scan"
+    return "plan"
