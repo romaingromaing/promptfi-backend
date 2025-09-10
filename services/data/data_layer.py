@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 SYMBOL_TO_CG = {"BTC":"bitcoin","ETH":"ethereum","SOL":"solana"}
 
-def ccxt_ohlcv(exchange_id="binance", pair="BTC/USDT", timeframe="1d", since_days=540):
+def ccxt_ohlcv(exchange_id="binanceus", pair="BTC/USDT", timeframe="1d", since_days=540):
     ex = getattr(ccxt, exchange_id)()
     since = int((datetime.now(timezone.utc) - timedelta(days=since_days)).timestamp() * 1000)
     rows = []
