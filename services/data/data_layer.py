@@ -38,7 +38,7 @@ def load_universe(universe: list[str], since_days=540) -> dict[str, pd.DataFrame
     for sym in universe:
         pair = f"{sym}/USDT"
         try:
-            df = ccxt_ohlcv("binance", pair, "1d", since_days)
+            df = ccxt_ohlcv("binanceus", pair, "1d", since_days)
             print(f"✅ Got {sym} from CCXT")
             out[sym] = df
         except Exception as e:
