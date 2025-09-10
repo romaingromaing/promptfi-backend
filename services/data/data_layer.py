@@ -38,7 +38,14 @@ def load_universe(universe: list[str], since_days=540) -> dict[str, pd.DataFrame
     for sym in universe:
         pair = f"{sym}/USDT"
         try:
-            out[sym] = ccxt_ohlcv("binance", pair, "1d", since_days)
-        except Exception:
+            df = ccxt_ohlcv("binance", pair, "1d", since_days)
+            print(f"✅ Got {sym} from CCXT")
+            out[sym] = df
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"❌ CCXT failed for {sym}: {e}")
             out[sym] = coingecko_ohlcv(SYMBOL_TO_CG[sym], since_days)
     return out
+
+
